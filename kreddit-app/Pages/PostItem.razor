@@ -1,0 +1,67 @@
+﻿    
+@using kreddit_app.Data
+@using shared.Model
+@inject ApiService ApiService
+
+<EditForm Model="@newPost" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    <div class="form-group">
+        <label for="username">Navn:</label>
+        <InputText id="username" class="form-control" @bind-Value="newPost.User.Username" placeholder="Anonym hvis uangivet" />
+
+    </div>
+
+    <div class="form-group">
+        <label for="title">Titel:</label>
+        <InputText id="title" class="form-control" @bind-Value="newPost.Title" />
+    </div>
+
+    <div class="form-group">
+        <label for="content">Indhold:</label>
+        <InputTextArea id="content" class="form-control" @bind-Value="newPost.Content" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Opret Post</button>
+</EditForm>
+
+
+
+@if (posts != null)
+{
+    <h3>Seneste Posts</h3>
+    <div>
+        @foreach (var post in posts)
+        {
+            <p>@post.Title - @post.Content</p>
+        }
+    </div>
+}
+
+@code {
+    private Post newPost = new Post();
+    private List<Post> posts;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var postsEnumerable = await ApiService.GetAllPostsAsync(); // Afventer resultatet af tasken
+        posts = postsEnumerable.ToList(); // Nu kan ToList kaldes på en IEnumerable<Post>
+    }
+
+    private async Task HandleSubmit()
+    {
+        // Sæt brugernavnet til "Anonym", hvis det ikke er angivet
+        if (string.IsNullOrWhiteSpace(newPost.User.Username))
+        {
+            newPost.User.Username = "Anonym";
+        }
+
+        // Opret posten og få den oprettede post tilbage
+        var createdPost = await ApiService.CreatePostAsync(newPost);
+        posts.Insert(0, createdPost); // Tilføj den nye post til listen
+        newPost = new Post(); // Nulstil formen for ny input
+    }
+}
