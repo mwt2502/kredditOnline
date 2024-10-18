@@ -3,17 +3,42 @@
 @using shared.Model
 @inject ApiService apiService
 
+<h3>Opret en ny post</h3>
+<PostForm OnPostCreated="HandlePostCreated" />
 
+<h3>Liste over posts</h3>
+@if (posts == null || !posts.Any())
+{
+    <p><em>Indlæser...</em></p>
+}
+else
+{
+    <PostsList posts="posts" />
+}
 
+@code {
+    private List<Post> posts = new List<Post>();
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine("Henter posts fra API...");
 
-<PageTitle>Kreddit</PageTitle>
+            posts = (await apiService.GetAllPostsAsync()).ToList();
+            Console.WriteLine($"Antal posts hentet: {posts.Count}");
 
-<h1>Welcome to Kreddit</h1>
+            StateHasChanged(); // Opdater UI
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Fejl ved indlæsning af posts: {ex.Message}");
+        }
+    }
 
-
-<PostsList></PostsList>
-<PostItem></PostItem>
-
-
-<a href="https://localhost/swagger/index.html" target="_blank">API dokumentation</a>
+    private void HandlePostCreated(Post newPost)
+    {
+        posts.Insert(0, newPost); // Tilføj den nye post til listen
+        StateHasChanged(); // Sørg for, at UI bliver opdateret
+    }
+}

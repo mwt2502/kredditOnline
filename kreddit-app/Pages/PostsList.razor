@@ -4,140 +4,52 @@
 @using shared.Model
 @inject ApiService apiService
 
-<!-- Form til oprettelse af nye indlæg -->
-<EditForm Model="@newPost" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<table class="table">
+    <thead>
+        <tr>
+            <th>Emne:</th>
+            <th>Indhold:</th>
+            <th>Votescore</th>
+            <th></th>
+            <th>Kommentarer</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var post in posts)
+        {
+            var postVoteScoreColor = post.VoteScore >= 0 ? "green" : "red"; // Grøn hvis scoren er positiv, ellers rød
 
-    <div class="form-group">
-        <label for="username">Navn:</label>
-        <InputText id="username" class="form-control" @bind-Value="newPost.User.Username" placeholder="Anonym hvis uangivet" />
-    </div>
-    <div class="form-group">
-        <label for="title">Titel:</label>
-        <InputText id="title" class="form-control" @bind-Value="newPost.Title" required />
-    </div>
-    <div class="form-group">
-        <label for="content">Indhold:</label>
-        <InputTextArea id="content" class="form-control" @bind-Value="newPost.Content" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Opret Post</button>
-</EditForm>
-
-@if (posts == null)
-{
-    <p><em>Indlæser...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
             <tr>
-                <th>Emne:</th>
-                <th>Indhold:</th>
-                <th>Votescore</th>
-                <th></th>
-                <th>Kommentarer</th>
+                <td>@post.Title</td>
+                <td>@post.Content</td>
+                <td style="color:@postVoteScoreColor">@post.VoteScore</td>
+                <td>
+                    <button @onclick="() => OnUpvote.InvokeAsync(post.Id)">like</button>
+                    <button @onclick="() => OnDownvote.InvokeAsync(post.Id)">dislike</button>
+                </td>
+                <td>
+                    @if (post.Comments != null && post.Comments.Any())
+                    {
+                        @foreach (var comment in post.Comments)
+                        {
+                            var commentVoteScore = comment.Upvotes - comment.Downvotes;
+                            var commentVoteScoreColor = commentVoteScore >= 0 ? "green" : "red";
+
+                            <p>@comment.User.Username: @comment.Content <span style="color:@commentVoteScoreColor">@commentVoteScore</span></p>
+                        }
+                    }
+                    else
+                    {
+                        <p>Ingen kommentarer.</p>
+                    }
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var post in posts)
-            {
-                var PostVoteScoreColor = post.VoteScore >= 0 ? "green" : "red"; // Grøn hvis scoren er positiv, ellers rød
-
-                <tr>
-                    <td>@post.Title</td>
-                    <td>@post.Content</td>
-                    <td style="color:@PostVoteScoreColor">@post.VoteScore</td>
-                    <td>
-                        <button @onclick="() => Upvote(post.Id)">like</button>
-                        <button @onclick="() => Downvote(post.Id)">dislike</button>
-                    </td>
-                    <td>
-                        @if (post.Comments != null && post.Comments.Any())
-                        {
-                            @foreach (var comment in post.Comments)
-                            {
-                                var commentVoteScore = comment.Upvotes - comment.Downvotes;
-                                var commentVoteScoreColor = commentVoteScore >= 0 ? "green" : "red";
-
-                                <p>@comment.User.Username: @comment.Content <span style="color:@commentVoteScoreColor">@commentVoteScore</span></p>
-                            }
-                        }
-                        else
-                        {
-                            <p>Ingen kommentarer.</p>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        }
+    </tbody>
+</table>
 
 @code {
-    private List<Post> posts;
-    private Post newPost = new Post { User = new User() };
-
-    protected override async Task OnInitializedAsync()
-    {
-        posts = (await apiService.GetAllPostsAsync()).ToList();
-    }
-
-    private async Task HandleSubmit()
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(newPost.User.Username))
-            {
-                newPost.User.Username = "Anonym"; // Sæt til "Anonym" hvis der ikke er indtastet et brugernavn
-            }
-
-            var createdPost = await apiService.CreatePostAsync(newPost);
-            posts.Insert(0, createdPost); // Tilføj det nye indlæg til starten af listen
-            newPost = new Post { User = new User() }; // Nulstil formularen
-            StateHasChanged(); // Opdater UI'en
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred while creating the post: {ex.Message}");
-            // Overvej at vise en brugervenlig besked
-        }
-    }
-
-    private async Task Upvote(ObjectId? postId)
-    {
-        if (postId != null)
-        {
-            await UpdateVoteCount(postId.Value.ToString(), () => apiService.UpvotePostAsync(postId.Value.ToString()));
-        }
-    }
-
-    private async Task Downvote(ObjectId? postId)
-    {
-        if (postId != null)
-        {
-            await UpdateVoteCount(postId.Value.ToString(), () => apiService.DownvotePostAsync(postId.Value.ToString()));
-        }
-    }
-
-    private async Task UpdateVoteCount(string postId, Func<Task> voteAction)
-    {
-        await voteAction();
-
-        // Forsøg at konvertere postId til ObjectId
-        if (ObjectId.TryParse(postId, out var objectId))
-        {
-            var index = posts.FindIndex(p => p.Id == objectId);
-            if (index != -1)
-            {
-                posts[index] = await apiService.GetPostByIdAsync(postId);
-                StateHasChanged();
-            }
-        }
-        else
-        {
-            Console.Error.WriteLine($"Invalid post ID format: {postId}");
-        }
-    }
+    [Parameter] public List<Post> posts { get; set; }
+    [Parameter] public EventCallback<ObjectId?> OnUpvote { get; set; }
+    [Parameter] public EventCallback<ObjectId?> OnDownvote { get; set; }
 }
