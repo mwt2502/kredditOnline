@@ -3,6 +3,7 @@
 @using kreddit_app.Data
 @using shared.Model
 @inject ApiService apiService
+@inject NavigationManager NavigationManager
 
 <table class="table">
     <thead>
@@ -17,26 +18,19 @@
     <tbody>
         @foreach (var post in posts)
         {
-            var postVoteScoreColor = post.VoteScore >= 0 ? "green" : "red"; // Grøn hvis scoren er positiv, ellers rød
-
             <tr>
                 <td>@post.Title</td>
                 <td>@post.Content</td>
-                <td style="color:@postVoteScoreColor">@post.VoteScore</td>
+                <td style="color:@(post.VoteScore >= 0 ? "green" : "red")">@post.VoteScore</td>
                 <td>
                     <button @onclick="() => OnUpvote.InvokeAsync(post.Id)">like</button>
                     <button @onclick="() => OnDownvote.InvokeAsync(post.Id)">dislike</button>
                 </td>
                 <td>
+                    <button @onclick="@(() => NavigateToThread(post.Id))">Vis og kommenter</button>
                     @if (post.Comments != null && post.Comments.Any())
                     {
-                        @foreach (var comment in post.Comments)
-                        {
-                            var commentVoteScore = comment.Upvotes - comment.Downvotes;
-                            var commentVoteScoreColor = commentVoteScore >= 0 ? "green" : "red";
-
-                            <p>@comment.User.Username: @comment.Content <span style="color:@commentVoteScoreColor">@commentVoteScore</span></p>
-                        }
+                        <p>@post.Comments.Count kommentarer</p>
                     }
                     else
                     {
@@ -49,7 +43,12 @@
 </table>
 
 @code {
-    [Parameter] public List<Post> posts { get; set; }
-    [Parameter] public EventCallback<ObjectId?> OnUpvote { get; set; }
-    [Parameter] public EventCallback<ObjectId?> OnDownvote { get; set; }
+    [Parameter] public List<Post> posts { get; set; } = new List<Post>();
+    [Parameter] public EventCallback<string> OnUpvote { get; set; }
+    [Parameter] public EventCallback<string> OnDownvote { get; set; }
+
+    private void NavigateToThread(string postId)
+    {
+        NavigationManager.NavigateTo($"/thread/{postId}");
+    }
 }

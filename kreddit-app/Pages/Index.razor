@@ -1,44 +1,30 @@
 ﻿@page "/"
-@using kreddit_app.Data;
+@using kreddit_app.Data
 @using shared.Model
 @inject ApiService apiService
 
-<h3>Opret en ny post</h3>
 <PostForm OnPostCreated="HandlePostCreated" />
-
-<h3>Liste over posts</h3>
-@if (posts == null || !posts.Any())
-{
-    <p><em>Indlæser...</em></p>
-}
-else
-{
-    <PostsList posts="posts" />
-}
+<PostsList posts="posts" />
 
 @code {
     private List<Post> posts = new List<Post>();
 
     protected override async Task OnInitializedAsync()
     {
+        posts = (await apiService.GetAllPostsAsync()).ToList();
+    }
+
+    private async Task HandlePostCreated(Post newPost)
+    {
         try
         {
-            Console.WriteLine("Henter posts fra API...");
-
-            posts = (await apiService.GetAllPostsAsync()).ToList();
-            Console.WriteLine($"Antal posts hentet: {posts.Count}");
-
-            StateHasChanged(); // Opdater UI
+            var createdPost = await apiService.CreatePostAsync(newPost);
+            posts.Insert(0, createdPost); // Tilføj den nye post til toppen
+            StateHasChanged(); 
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Fejl ved indlæsning af posts: {ex.Message}");
+            Console.Error.WriteLine($"Fejl ved oprettelse af post: {ex.Message}");
         }
-    }
-
-    private void HandlePostCreated(Post newPost)
-    {
-        posts.Insert(0, newPost); // Tilføj den nye post til listen
-        StateHasChanged(); // Sørg for, at UI bliver opdateret
     }
 }

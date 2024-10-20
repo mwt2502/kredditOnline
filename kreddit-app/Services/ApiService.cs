@@ -16,10 +16,27 @@ namespace kreddit_app.Data
             _httpClient = httpClient;
         }
 
+
+        //- API'er for Posts -//
+
         public async Task<IEnumerable<Post>> GetAllPostsAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Post>>("api/posts");
+            var response = await _httpClient.GetAsync("api/posts");
+            response.EnsureSuccessStatusCode();
+
+            var posts = await response.Content.ReadFromJsonAsync<IEnumerable<Post>>();
+
+            // Debugging: Check om hver post har en gyldig ObjectId
+            foreach (var post in posts)
+            {
+                Console.WriteLine($"Post ID from API: {post.Id}"); // Log fra API
+            }
+
+            return posts;
         }
+
+
+
 
         public async Task<Post> GetPostByIdAsync(string id)
         {
@@ -42,13 +59,7 @@ namespace kreddit_app.Data
             }
         }
 
-
-
-        public async Task CreateCommentAsync(Comment comment, string postId)
-        {
-            var response = await _httpClient.PostAsJsonAsync($"api/posts/{postId}/comments", comment);
-            response.EnsureSuccessStatusCode();
-        }
+        //-- API'er for Votes --// 
 
         public async Task UpvotePostAsync(string postId)
         {
@@ -59,6 +70,15 @@ namespace kreddit_app.Data
         public async Task DownvotePostAsync(string postId)
         {
             var response = await _httpClient.PostAsJsonAsync($"api/posts/{postId}/downvote", new { });
+            response.EnsureSuccessStatusCode();
+        }
+
+
+        //-- API'er for Comments --//
+
+        public async Task AddCommentToPostAsync(string postId, Comment newComment)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/posts/{postId}/comments", newComment);
             response.EnsureSuccessStatusCode();
         }
 

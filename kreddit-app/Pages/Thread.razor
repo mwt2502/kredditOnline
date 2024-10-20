@@ -1,0 +1,65 @@
+﻿@page "/thread/{postId}"
+@using MongoDB.Bson
+@using kreddit_app.Data
+@using shared.Model
+@inject ApiService apiService
+
+<h3>@post.Title</h3>
+<p>@post.Content</p>
+
+<hr />
+
+<h4>Kommentarer</h4>
+@if (post.Comments != null && post.Comments.Any())
+{
+    @foreach (var comment in post.Comments)
+    {
+        var commentVoteScore = comment.Upvotes - comment.Downvotes;
+        var commentVoteScoreColor = commentVoteScore >= 0 ? "green" : "red";
+
+        <p>@comment.User.Username: @comment.Content <span style="color:@commentVoteScoreColor">@commentVoteScore</span></p>
+    }
+}
+else
+{
+    <p>Ingen kommentarer endnu.</p>
+}
+
+<hr />
+
+<h4>Tilføj en kommentar</h4>
+<EditForm Model="@newComment" OnValidSubmit="HandleSubmitComment">
+    <div class="form-group">
+        <label for="username">Navn:</label>
+        <InputText id="username" class="form-control" @bind-Value="newComment.User.Username" placeholder="Anonym hvis tom" />
+    </div>
+    <div class="form-group">
+        <label for="content">Kommentar:</label>
+        <InputTextArea id="content" class="form-control" @bind-Value="newComment.Content" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Tilføj kommentar</button>
+</EditForm>
+
+@code {
+    [Parameter] public string postId { get; set; }
+    private Post post = new Post();
+    private Comment newComment = new Comment { User = new User() };
+
+    protected override async Task OnInitializedAsync()
+    {
+        post = await apiService.GetPostByIdAsync(postId);
+    }
+
+    private async Task HandleSubmitComment()
+    {
+        if (string.IsNullOrWhiteSpace(newComment.User.Username))
+        {
+            newComment.User.Username = "Anonym";
+        }
+
+        await apiService.AddCommentToPostAsync(postId, newComment);
+        post.Comments.Add(newComment); // Tilføj kommentaren til UI
+        newComment = new Comment { User = new User() }; // Nulstil formularen
+        StateHasChanged();
+    }
+}

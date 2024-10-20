@@ -8,12 +8,17 @@ namespace shared.Model
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId? Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [BsonIgnore]
+        public string IdString => Id.ToString();
 
         [Required]
         public string Title { get; set; }
+
         [Required]
         public string Content { get; set; }
+
         public DateTime CreationTime { get; set; }
 
         public int Upvotes { get; set; }
@@ -21,6 +26,7 @@ namespace shared.Model
 
         [BsonIgnore]
         public int VoteScore => Upvotes - Downvotes;
+
         public User User { get; set; }
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
@@ -31,7 +37,7 @@ namespace shared.Model
             Upvotes = upvotes;
             Downvotes = downvotes;
             User = user;
-            CreationTime = DateTime.UtcNow; 
+            CreationTime = DateTime.UtcNow;
         }
 
         public Post()
@@ -41,7 +47,7 @@ namespace shared.Model
             Upvotes = 0;
             Downvotes = 0;
             User = new User();
-            CreationTime = DateTime.UtcNow; // Initialiserer creation time
+            CreationTime = DateTime.UtcNow;
         }
     }
 }

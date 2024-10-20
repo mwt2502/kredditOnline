@@ -8,7 +8,7 @@ namespace shared.Model
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; } = ObjectId.GenerateNewId(); // Generer ID automatisk
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required]
         public string Content { get; set; }
@@ -29,7 +29,7 @@ namespace shared.Model
             Content = "";
             Upvotes = 0;
             Downvotes = 0;
-            User = new User(); // Antager, at User har en parameterløs konstruktor
+            User = new User(); // Assume User has a parameterless constructor
         }
     }
 }

@@ -1,6 +1,5 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.ComponentModel.DataAnnotations;
 
 namespace shared.Model
 {
@@ -8,7 +7,7 @@ namespace shared.Model
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; } = ObjectId.GenerateNewId(); // Generer ID automatisk
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         public string Username { get; set; }
 

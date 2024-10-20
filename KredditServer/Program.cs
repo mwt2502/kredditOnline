@@ -1,7 +1,10 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
-using kreddit_app.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using kreddit_app.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
 
 // Services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new ObjectIdJsonConverter()); // Correctly add the converter here
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -24,9 +32,9 @@ builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
 
 // Custom Services
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<ApiService>();
+builder.Services.AddHttpClient(); // Ensure you add HttpClient without JsonOptions
 
+builder.Services.AddScoped<ApiService>();
 
 // CORS Configuration
 builder.Services.AddCors(options =>
@@ -34,8 +42,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("MyCorsPolicy", builder =>
     {
         builder.AllowAnyOrigin()
-                .AllowAnyHeader()
-              .AllowAnyMethod();
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 
@@ -46,7 +54,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}   
+}
 
 app.UseHttpsRedirection();
 
