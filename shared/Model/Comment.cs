@@ -14,6 +14,8 @@ namespace shared.Model
         public string Content { get; set; }
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
+
+        public DateTime CreationTime { get; set; }
         public User User { get; set; }
 
         public Comment(string content = "", int upvotes = 0, int downvotes = 0, User user = null)

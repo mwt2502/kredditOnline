@@ -29,17 +29,6 @@ namespace shared.Model
 
         public User User { get; set; }
         public List<Comment> Comments { get; set; } = new List<Comment>();
-
-        public Post(User user, string title = "", string content = "", int upvotes = 0, int downvotes = 0)
-        {
-            Title = title;
-            Content = content;
-            Upvotes = upvotes;
-            Downvotes = downvotes;
-            User = user;
-            CreationTime = DateTime.UtcNow;
-        }
-
         public Post()
         {
             Title = "";

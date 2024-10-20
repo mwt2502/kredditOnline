@@ -4,41 +4,51 @@
 @using shared.Model
 @inject ApiService apiService
 
-<h3>@post.Title</h3>
-<p>@post.Content</p>
+<div class="container">
+    <div class="post-header">
+        <h1 class="post-title"><strong>@post.Title</strong></h1>
+        <p class="post-author">Oprettet af: <strong>@post.User.Username</strong></p>
+        <p class="post-date"><small>Oprettet: @post.CreationTime.ToString("dd/MM/yyyy HH:mm")</small></p>
+    </div>
 
-<hr />
+    <div class="post-content">@((MarkupString)FormatContent(post.Content))</div>
 
-<h4>Kommentarer</h4>
-@if (post.Comments != null && post.Comments.Any())
-{
-    @foreach (var comment in post.Comments)
+    <hr class="divider" />
+
+    <h4>Kommentarer</h4>
+    @if (post.Comments != null && post.Comments.Any())
     {
-        var commentVoteScore = comment.Upvotes - comment.Downvotes;
-        var commentVoteScoreColor = commentVoteScore >= 0 ? "green" : "red";
-
-        <p>@comment.User.Username: @comment.Content <span style="color:@commentVoteScoreColor">@commentVoteScore</span></p>
+        foreach (var comment in post.Comments)
+        {
+            <div class="comment">
+                <div class="comment-header">
+                    <strong>@comment.User.Username</strong>
+                    <span class="comment-time">@comment.CreationTime.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <p>@comment.Content</p>
+            </div>
+        }
     }
-}
-else
-{
-    <p>Ingen kommentarer endnu.</p>
-}
+    else
+    {
+        <p>Ingen kommentarer endnu.</p>
+    }
 
-<hr />
+    <hr class="divider" />
 
-<h4>Tilføj en kommentar</h4>
-<EditForm Model="@newComment" OnValidSubmit="HandleSubmitComment">
-    <div class="form-group">
-        <label for="username">Navn:</label>
-        <InputText id="username" class="form-control" @bind-Value="newComment.User.Username" placeholder="Anonym hvis tom" />
-    </div>
-    <div class="form-group">
-        <label for="content">Kommentar:</label>
-        <InputTextArea id="content" class="form-control" @bind-Value="newComment.Content" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Tilføj kommentar</button>
-</EditForm>
+    <h4>Tilføj en kommentar</h4>
+    <EditForm Model="@newComment" OnValidSubmit="HandleSubmitComment">
+        <div class="form-group">
+            <label for="username">Navn:</label>
+            <InputText id="username" class="form-control" @bind-Value="newComment.User.Username" placeholder="Anonym hvis tom" />
+        </div>
+        <div class="form-group">
+            <label for="content">Kommentar:</label>
+            <InputTextArea id="content" class="form-control" @bind-Value="newComment.Content" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Tilføj kommentar</button>
+    </EditForm>
+</div>
 
 @code {
     [Parameter] public string postId { get; set; }
@@ -57,9 +67,106 @@ else
             newComment.User.Username = "Anonym";
         }
 
+        newComment.CreationTime = DateTime.Now; // Set the creation time
+
         await apiService.AddCommentToPostAsync(postId, newComment);
-        post.Comments.Add(newComment); // Tilføj kommentaren til UI
-        newComment = new Comment { User = new User() }; // Nulstil formularen
+        post.Comments.Add(newComment); // Add the comment to the UI
+        newComment = new Comment { User = new User() }; // Reset the form
         StateHasChanged();
     }
+
+    private string FormatContent(string content)
+    {
+        // Find URLs in the content and replace them with anchor tags
+        var urlPattern = @"(https?://[^\s]+)";
+        return System.Text.RegularExpressions.Regex.Replace(content, urlPattern, "<a href=\"$0\" target=\"_blank\">$0</a>");
+    }
 }
+
+<style>
+    .container {
+        max-width: 800px; /* Limit the width of the container */
+        margin: 0 auto; /* Center the container */
+        padding: 20px; /* Add padding */
+        background-color: #f9f9f9; /* Light background color */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .post-header {
+        margin-bottom: 15px; /* Space below the header */
+        border-bottom: 2px solid #ddd; /* Separator line */
+        padding-bottom: 10px; /* Padding below the header */
+    }
+
+    .post-title {
+        font-size: 2em; /* Large title */
+        color: #333; /* Dark title color */
+        margin: 0; /* Remove default margin */
+        font-weight: bold; /* Make title bold */
+    }
+
+    .post-author {
+        font-size: 1.1em; /* Slightly larger font for author */
+        color: #555; /* Gray color */
+        margin: 5px 0; /* Space above and below */
+    }
+
+    .post-date {
+        font-size: 0.9em; /* Smaller font for date */
+        color: #888; /* Light gray for date */
+    }
+
+    .post-content {
+        font-size: 1.2em; /* Large content font */
+        line-height: 1.6; /* Improve line height for readability */
+        color: #444; /* Dark content color */
+        margin: 15px 0; /* Space above and below content */
+        padding: 15px; /* Padding around content */
+        border: 1px solid #ddd; /* Border around content */
+        border-radius: 5px; /* Rounded corners */
+        background-color: #ffffff; /* White background for content */
+    }
+
+    .divider {
+        border-top: 1px solid #ddd; /* Subtle line */
+        margin: 20px 0; /* Space above and below */
+    }
+
+    .comment {
+        margin-bottom: 15px; /* Space between comments */
+        padding: 10px; /* Padding around each comment */
+        border: 1px solid #e0e0e0; /* Light border for comments */
+        border-radius: 5px; /* Rounded corners for comments */
+        background-color: #f9f9f9; /* Light background for comments */
+        font-size: 0.9em; /* Make comments smaller (30% smaller than normal) */
+    }
+
+    .comment-header {
+        font-size: 1.1em; /* Larger font for comment header */
+        margin-bottom: 5px; /* Space below header */
+    }
+
+    .comment-time {
+        font-size: 0.8em; /* Smaller font for comment time */
+        color: #888; /* Light gray for comment time */
+    }
+
+    .form-group {
+        margin-bottom: 15px; /* Space between form groups */
+    }
+
+    button.btn-primary {
+        margin-top: 10px; /* Space above the button */
+        background-color: #007bff; /* Bootstrap primary color */
+        border: none; /* Remove border */
+        border-radius: 5px; /* Rounded corners */
+        color: white; /* White text */
+        padding: 10px 15px; /* Padding for button */
+        cursor: pointer; /* Pointer cursor */
+    }
+
+        button.btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+</style>

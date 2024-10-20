@@ -5,13 +5,14 @@
 @inject ApiService apiService
 @inject NavigationManager NavigationManager
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
+            <th>Forfatter:</th>
             <th>Emne:</th>
             <th>Indhold:</th>
-            <th>Votescore</th>
-            <th></th>
+            <th>Likes</th>
+            <th>Dislikes</th>
             <th>Kommentarer</th>
         </tr>
     </thead>
@@ -19,15 +20,28 @@
         @foreach (var post in posts)
         {
             <tr>
+                <td>@post.User.Username</td> <!-- Display the author's name -->
                 <td>@post.Title</td>
-                <td>@post.Content</td>
-                <td style="color:@(post.VoteScore >= 0 ? "green" : "red")">@post.VoteScore</td>
                 <td>
-                    <button @onclick="() => OnUpvote.InvokeAsync(post.Id)">like</button>
-                    <button @onclick="() => OnDownvote.InvokeAsync(post.Id)">dislike</button>
+                    <div>@post.Content</div>
+                    <br>
+
+                    <small class="text-muted">@post.CreationTime.ToString("dd MMM yyyy HH:mm")</small>
                 </td>
                 <td>
-                    <button @onclick="@(() => NavigateToThread(post.Id))">Vis og kommenter</button>
+                    <button @onclick="() => OnUpvote.InvokeAsync(post.Id)" class="btn btn-link">
+                        <i class="fas fa-arrow-up" style="color: green;"></i>
+                    </button>
+                    <span>@post.Upvotes</span>
+                </td>
+                <td>
+                    <button @onclick="() => OnDownvote.InvokeAsync(post.Id)" class="btn btn-link">
+                        <i class="fas fa-arrow-down" style="color: red;"></i>
+                    </button>
+                    <span>@post.Downvotes</span>
+                </td>
+                <td>
+                    <button class="btn btn-primary" @onclick="@(() => NavigateToThread(post.Id))">Vis og kommenter</button>
                     @if (post.Comments != null && post.Comments.Any())
                     {
                         <p>@post.Comments.Count kommentarer</p>
@@ -51,4 +65,26 @@
     {
         NavigationManager.NavigateTo($"/thread/{postId}");
     }
+
 }
+
+<style>
+    .table {
+        margin-top: 20px;
+    }
+
+    .btn-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .btn-primary {
+        margin-top: 5px;
+    }
+
+    .text-muted {
+        font-size: 0.9em; /* Slightly smaller font for the creation time */
+        margin-top: 5px; /* Add some space above */
+        display: block; /* Ensure it starts on a new line */
+    }
+</style>

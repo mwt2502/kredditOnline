@@ -3,6 +3,69 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+    .pagination button {
+        margin: 0 10px;
+        padding: 5px 10px;
+    }
+
+.table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+}
+
+    .table th, .table td {
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-striped tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+.comment {
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s;
+}
+
+    .comment:hover {
+        background-color: #f1f1f1;
+    }
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.comment-time {
+    color: #999;
+}
+
+h3, h4 {
+    color: #333;
+}
+
 
 h1:focus {
     outline: none;

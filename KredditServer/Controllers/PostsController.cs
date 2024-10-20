@@ -29,7 +29,7 @@ namespace KredditServer.Controllers
             var posts = await _postsCollection.Find(_ => true).ToListAsync();
             return Ok(posts.Select(post => new
             {
-                Id = post.Id.ToString(), // Convert ObjectId to string
+                Id = post.Id.ToString(),
                 post.Title,
                 post.Content,
                 post.CreationTime,
@@ -38,7 +38,7 @@ namespace KredditServer.Controllers
                 post.User,
                 Comments = post.Comments.Select(comment => new
                 {
-                    Id = comment.Id.ToString(), // Convert ObjectId to string
+                    Id = comment.Id.ToString(),
                     comment.Content,
                     comment.Upvotes,
                     comment.Downvotes,
@@ -195,63 +195,6 @@ public async Task<ActionResult<Post>> GetPost(string postId)
                 return NotFound("Post not found");
             }
 
-            return Ok();
-        }
-
-
-        //-- Controllers VOTE PÅ COMMENTS (NOT IMPLEMENTED) --//
-
-        [HttpPost("{postId}/comments/{commentId}/upvote")]
-        public async Task<IActionResult> UpvoteComment(string postId, string commentId)
-        {
-            if (!ObjectId.TryParse(postId, out var objectId))
-            {
-                return BadRequest("Invalid post ID format.");
-            }
-
-            // Post-filter bruger string nu
-            var postFilter = Builders<Post>.Filter.Eq(p => p.Id, postId);
-
-            // Kommentar-filter bruger string for commentId og sammenligner med Id som string
-            var commentFilter = Builders<Post>.Filter.ElemMatch(p => p.Comments, c => c.Id.ToString() == commentId);
-
-            // Opdatering for at inkrementere Upvotes på kommentaren
-            var update = Builders<Post>.Update.Inc("Comments.$.Upvotes", 1);
-            var result = await _postsCollection.UpdateOneAsync(postFilter & commentFilter, update);
-
-            if (result.ModifiedCount == 0)
-            {
-                return NotFound("Post or comment not found");
-            }
-            return Ok();
-        }
-
-
-
-        [HttpPost("{postId}/comments/{commentId}/downvote")]
-        public async Task<IActionResult> DownvoteComment(string postId, string commentId)
-        {
-            if (!ObjectId.TryParse(postId, out var objectId))
-            {
-                return BadRequest("Invalid post ID format.");
-            }
-
-            // Post-filter bruger string nu, så vi sammenligner postens Id som string
-            var postFilter = Builders<Post>.Filter.Eq(p => p.Id, postId);
-
-            // Kommentar-filter bruger string for commentId, sammenligner med IdString
-            var commentFilter = Builders<Post>.Filter.ElemMatch(p => p.Comments, c => c.Id.ToString() == commentId);
-
-            // Opdatering for at inkrementere Downvotes på kommentaren
-            var update = Builders<Post>.Update.Inc("Comments.$.Downvotes", 1);
-
-            // Kombiner filtrene og opdater
-            var result = await _postsCollection.UpdateOneAsync(postFilter & commentFilter, update);
-
-            if (result.ModifiedCount == 0)
-            {
-                return NotFound("Post or comment not found");
-            }
             return Ok();
         }
 

@@ -4,14 +4,31 @@
 @inject ApiService apiService
 
 <PostForm OnPostCreated="HandlePostCreated" />
+
 <PostsList posts="posts" />
+
+<div class="pagination">
+    <button @onclick="PreviousPage" disabled="@(!CanGoToPrevious)">Forrige</button>
+    <span>Side @currentPage</span>
+    <button @onclick="NextPage" disabled="@(!CanGoToNext)">Næste</button>
+</div>
 
 @code {
     private List<Post> posts = new List<Post>();
+    private int currentPage = 1;
+    private const int pageSize = 50;
+    private bool CanGoToPrevious => currentPage > 1;
+    private bool CanGoToNext => posts.Count == pageSize;
 
     protected override async Task OnInitializedAsync()
     {
-        posts = (await apiService.GetAllPostsAsync()).ToList();
+        await LoadPosts();
+    }
+
+    private async Task LoadPosts()
+    {
+        posts = (await apiService.GetPostsByPageAsync(currentPage, pageSize)).ToList();
+        StateHasChanged();
     }
 
     private async Task HandlePostCreated(Post newPost)
@@ -20,11 +37,28 @@
         {
             var createdPost = await apiService.CreatePostAsync(newPost);
             posts.Insert(0, createdPost); // Tilføj den nye post til toppen
-            StateHasChanged(); 
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Fejl ved oprettelse af post: {ex.Message}");
         }
     }
+
+    private async Task NextPage()
+    {
+        currentPage++;
+        await LoadPosts();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (CanGoToPrevious)
+        {
+            currentPage--;
+            await LoadPosts();
+        }
+    }
+
 }
+    

@@ -1,12 +1,38 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Routing
 
-<div class="page">
-    <main>
-        <div class="top-row px-4">
-        </div>
+<div class="header">
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+
+    <a href="/">
+        <img src="https://cdn.discordapp.com/attachments/693862603839111169/1297635576803233913/output.png?ex=6716a4ce&is=6715534e&hm=baa4025a948f7a775fac939c10e47090389df4d555eda07edcc6f3a02b547875&" alt="Logo" class="logo" />
+    </a>
+    <a href="/swagger" style="position: absolute; top: 10px; right: 10px; target=" _blank" class="btn btn-secondary">API dokumentation</a>
+
 </div>
+
+<div class="main">
+    @Body
+</div>
+
+<style>
+    .header {
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        padding: 0px; 
+        background-color: #f8f9fa; 
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+        z-index: 1000; 
+    }
+
+    .logo {
+        height: 120px; 
+        cursor: pointer;
+    }
+
+    .main {
+        padding: 120px 20px 20px; 
+    }
+</style>

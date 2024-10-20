@@ -12,12 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
 
 // Services
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new ObjectIdJsonConverter()); // Correctly add the converter here
-    });
-
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -32,7 +27,7 @@ builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
 
 // Custom Services
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient(); // Ensure you add HttpClient without JsonOptions
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<ApiService>();
 
@@ -49,17 +44,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = "swagger"; 
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
+
 
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
-
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -72,7 +70,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapRazorPages();
     endpoints.MapControllers(); // Map API controllers
-    endpoints.MapFallbackToFile("index.html"); // Fallback to serve index.html for client-side routing
+    endpoints.MapFallbackToFile("index.html"); // Fallback to serve Blazor client-side routing
 });
 
 app.Run();

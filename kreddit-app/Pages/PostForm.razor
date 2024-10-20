@@ -13,10 +13,11 @@
         }
 
         await OnPostCreated.InvokeAsync(newPost);
-        newPost = new Post { User = new User() }; // Nulstil formular
+        newPost = new Post { User = new User() }; // Reset form
     }
 }
-<EditForm Model="@newPost" OnValidSubmit="HandleSubmit">
+
+<EditForm Model="@newPost" OnValidSubmit="HandleSubmit" class="post-form">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -30,7 +31,26 @@
     </div>
     <div class="form-group">
         <label for="content">Indhold:</label>
-        <InputTextArea id="content" class="form-control" @bind-Value="newPost.Content" required />
+        <InputTextArea id="content" class="form-control" @bind-Value="newPost.Content" required style="resize: none; height: 150px;" />
     </div>
     <button type="submit" class="btn btn-primary">Opret Post</button>
 </EditForm>
+
+<style>
+    .post-form {
+        max-width: 600px; /* Limit the width of the form */
+        margin: 20px auto; /* Center the form */
+        padding: 20px; /* Add padding */
+        border: 1px solid #dee2e6; /* Border around the form */
+        border-radius: 5px; /* Rounded corners */
+        background-color: #f9f9f9; /* Light background color */
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .btn {
+        margin-top: 10px;
+    }
+</style>
